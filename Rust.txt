@@ -1,0 +1,32 @@
+pipeline {
+    agent {
+        docker { image 'rust:latest' }
+    }
+    stages {
+        stage('Version') {
+            steps {
+                sh 'cargo --version'
+                sh 'rustc --version'
+                sh 'rustup component add rustfmt'
+            }
+        }
+        stage('Check') {
+            steps {
+                sh 'cargo fmt --all -- --check'
+                sh 'cargo check'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'cargo build'
+                sh 'cargo build --release'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'cargo test'
+                sh 'cargo test --release'
+            }
+        }
+    }
+}
