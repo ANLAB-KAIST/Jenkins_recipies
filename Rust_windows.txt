@@ -1,0 +1,77 @@
+pipeline {
+    agent none
+    stages {
+        stage ("Parallel Tasks") {
+            parallel {
+                stage ("Linux/Docker") {
+                    agent {
+                        docker { image 'rust:latest' }
+                    }
+                    stages {
+                        stage('Version') {
+                            steps {
+                                sh 'cargo --version'
+                                sh 'rustc --version'
+                                sh 'rustup component add clippy'
+                                sh 'rustup component add rustfmt'
+                            }
+                        }
+                        stage('Check') {
+                            steps {
+                                sh 'cargo fmt -- --check'
+                                sh 'cargo clippy --all-targets --all-features -- -D warnings'
+                                sh 'cargo check'
+                            }
+                        }
+                        stage('Build') {
+                            steps {
+                                sh 'cargo build'
+                                sh 'cargo build --release'
+                            }
+                        }
+                        stage('Test') {
+                            steps {
+                                sh 'cargo test'
+                                sh 'cargo test --release'
+                            }
+                        }
+                    }
+                }
+                stage ("Windows") {
+                    agent {
+                        label "windows"
+                    }
+                    stages {
+                        stage('Version') {
+                            steps {
+                                powershell 'cargo --version'
+                                powershell 'rustc --version'
+                                powershell 'rustup component add clippy'
+                                powershell 'rustup component add rustfmt'
+                            }
+                        }
+                        stage('Check') {
+                            steps {
+                                powershell 'cargo fmt -- --check'
+                                powershell 'cargo clippy --all-targets --all-features -- -D warnings'
+                                powershell 'cargo check'
+                            }
+                        }
+                        stage('Build') {
+                            steps {
+                                powershell 'cargo build'
+                                powershell 'cargo build --release'
+                            }
+                        }
+                        stage('Test') {
+                            steps {
+                                powershell 'cargo test'
+                                powershell 'cargo test --release'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
